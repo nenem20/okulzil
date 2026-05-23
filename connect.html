@@ -6,41 +6,71 @@
 <title>Okul Zil — Bağlanıyor…</title>
 <style>
   body{min-height:100vh;display:flex;align-items:center;justify-content:center;
-       background:#0f172a;font-family:sans-serif;color:#f1f5f9;text-align:center}
-  .box{padding:40px}
+       background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#f1f5f9;text-align:center}
+  .box{padding:40px 28px;max-width:340px}
   .icon{font-size:3rem;margin-bottom:16px}
-  p{color:#94a3b8;margin-top:8px;font-size:0.9rem}
-  .err{color:#f87171}
+  h2{font-size:1.15rem;margin-bottom:6px}
+  #msg{font-size:1rem;min-height:1.5em;margin-top:12px}
+  #sub{color:#94a3b8;font-size:0.85rem;margin-top:8px;word-break:break-all}
+  .err{color:#f87171!important}
+  .ok{color:#22c55e!important}
+  button{margin-top:20px;padding:10px 24px;border:none;border-radius:8px;
+         background:#f59e0b;color:#000;font-weight:700;font-size:0.95rem;cursor:pointer;display:none}
 </style>
 </head>
 <body>
 <div class="box">
   <div class="icon">🔔</div>
+  <h2>Okul Zil Sistemi</h2>
   <div id="msg">Sunucuya bağlanılıyor…</div>
-  <p id="sub"></p>
+  <div id="sub"></div>
+  <button id="btn" onclick="connect()">🔄 Tekrar Dene</button>
 </div>
 <script>
-const TOPIC = 'nene-okul-zil-k7m2p9xw';
+const params = new URLSearchParams(location.search);
+const TOPIC  = params.get('topic') || 'nene-okul-zil-k7m2p9xw'; // geriye dönük uyumluluk
+
+const msg = document.getElementById('msg');
+const sub = document.getElementById('sub');
+const btn = document.getElementById('btn');
 
 async function connect() {
+  btn.style.display = 'none';
+  msg.className = '';
+  msg.textContent = 'Sunucu adresi alınıyor…';
+  sub.textContent = '';
   try {
-    const res = await fetch('https://ntfy.sh/' + TOPIC + '/json?poll=1&since=12h');
+    // Son 12 saatteki mesajları sorgula — en son IP'yi al
+    const res  = await fetch('https://ntfy.sh/' + TOPIC + '/json?poll=1&since=12h');
     const text = await res.text();
     const lines = text.trim().split('\n').filter(Boolean);
     if (!lines.length) {
-      document.getElementById('msg').className = 'err';
-      document.getElementById('msg').textContent = '❌ Sunucu bulunamadı';
-      document.getElementById('sub').textContent = 'Bilgisayarın açık ve programın çalışıyor olduğundan emin ol.';
+      msg.className = 'err';
+      msg.textContent = '❌ Sunucu bulunamadı';
+      sub.textContent = 'Okul bilgisayarı açık ve program çalışıyor olmalı.';
+      btn.style.display = 'inline-block';
       return;
     }
     const last = JSON.parse(lines[lines.length - 1]);
-    const ip = last.message.trim();
-    document.getElementById('sub').textContent = ip + ' adresine yönlendiriliyorsunuz…';
-    window.location.href = 'http://' + ip + ':8765/remote.html';
+    const ip   = last.message.trim();
+    if (!ip || ip.length < 7) {
+      msg.className = 'err';
+      msg.textContent = '❌ Geçersiz adres';
+      sub.textContent = 'Kayıtlı adres: ' + ip;
+      btn.style.display = 'inline-block';
+      return;
+    }
+    msg.className = 'ok';
+    msg.textContent = '✅ Sunucu bulundu!';
+    sub.textContent = ip + ' adresine yönlendiriliyorsunuz…';
+    setTimeout(() => {
+      window.location.href = 'http://' + ip + ':8765/remote.html';
+    }, 800);
   } catch(e) {
-    document.getElementById('msg').className = 'err';
-    document.getElementById('msg').textContent = '❌ Bağlantı hatası';
-    document.getElementById('sub').textContent = e.message;
+    msg.className = 'err';
+    msg.textContent = '❌ Bağlantı hatası';
+    sub.textContent = e.message;
+    btn.style.display = 'inline-block';
   }
 }
 
