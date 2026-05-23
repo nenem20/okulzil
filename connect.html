@@ -2,77 +2,135 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Okul Zil — Bağlanıyor…</title>
 <style>
+  *{box-sizing:border-box;margin:0;padding:0}
   body{min-height:100vh;display:flex;align-items:center;justify-content:center;
-       background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#f1f5f9;text-align:center}
-  .box{padding:40px 28px;max-width:340px}
-  .icon{font-size:3rem;margin-bottom:16px}
-  h2{font-size:1.15rem;margin-bottom:6px}
-  #msg{font-size:1rem;min-height:1.5em;margin-top:12px}
-  #sub{color:#94a3b8;font-size:0.85rem;margin-top:8px;word-break:break-all}
-  .err{color:#f87171!important}
-  .ok{color:#22c55e!important}
-  button{margin-top:20px;padding:10px 24px;border:none;border-radius:8px;
-         background:#f59e0b;color:#000;font-weight:700;font-size:0.95rem;cursor:pointer;display:none}
+       background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+       color:#f1f5f9;text-align:center;padding:16px}
+  .box{max-width:360px;width:100%}
+  .icon{font-size:2.8rem;margin-bottom:12px}
+  h2{font-size:1.15rem;margin-bottom:4px}
+
+  /* Arama ekranı */
+  #searchBox .sub{color:#94a3b8;font-size:0.85rem;margin-top:6px}
+  #status{font-size:0.95rem;margin-top:18px;min-height:1.5em;color:#f59e0b}
+  .progress{width:100%;height:4px;background:#1e293b;border-radius:2px;margin:12px 0;overflow:hidden}
+  .bar{height:4px;background:#f59e0b;border-radius:2px;width:0;transition:width 0.4s}
+  #retryBtn{margin-top:16px;padding:10px 24px;border:none;border-radius:8px;
+            background:#f59e0b;color:#000;font-weight:700;font-size:0.95rem;
+            cursor:pointer;display:none}
+
+  /* Bulundu ekranı */
+  #foundBox{display:none;background:#0f2a1a;border:1px solid #16a34a;
+            border-radius:14px;padding:24px 20px;margin-top:8px}
+  .found-title{font-size:1.1rem;font-weight:700;color:#22c55e;margin-bottom:10px}
+  .found-tip{font-size:0.82rem;color:#86efac;line-height:1.55;margin-bottom:18px;text-align:left}
+  .found-tip strong{color:#4ade80}
+  .found-tip .step{margin-top:6px}
+  #continueBtn{width:100%;padding:13px;border:none;border-radius:10px;
+               background:#22c55e;color:#000;font-weight:700;font-size:1rem;cursor:pointer}
+  #continueBtn:active{background:#16a34a}
 </style>
 </head>
 <body>
 <div class="box">
   <div class="icon">🔔</div>
   <h2>Okul Zil Sistemi</h2>
-  <div id="msg">Sunucuya bağlanılıyor…</div>
-  <div id="sub"></div>
-  <button id="btn" onclick="connect()">🔄 Tekrar Dene</button>
+
+  <!-- Arama ekranı -->
+  <div id="searchBox">
+    <p class="sub">Sunucu ağda aranıyor…</p>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div id="status">Başlatılıyor…</div>
+    <button id="retryBtn" onclick="connect()">🔄 Tekrar Dene</button>
+  </div>
+
+  <!-- Bulundu ara ekranı -->
+  <div id="foundBox">
+    <div class="found-title">✅ Sunucu Bulundu!</div>
+    <div class="found-tip">
+      Bir dahaki girişte doğrudan bağlanmak için <strong>bu sayfayı kaydedin</strong>:
+      <div class="step">📱 <strong>Android:</strong> Tarayıcı menüsü (⋮) → <em>Ana ekrana ekle</em> veya <em>Sık kullanılanlara ekle</em></div>
+      <div class="step">🍎 <strong>iPhone:</strong> Paylaş (□↑) → <em>Ana Ekrana Ekle</em></div>
+      <div class="step">💻 <strong>Bilgisayar:</strong> Adres çubuğundaki ☆ yıldıza tıkla</div>
+      <br>
+      <span style="color:#94a3b8;font-size:0.78rem;">
+        Bu sayfa IP adresi içermez — bilgisayarın IP'si değişse bile her zaman çalışır.
+        Dilediğiniz zaman bu sayfanın adresini değiştirebilirsiniz.
+      </span>
+    </div>
+    <button id="continueBtn">▶ Devam Et</button>
+  </div>
 </div>
+
 <script>
 const params = new URLSearchParams(location.search);
-const TOPIC  = params.get('topic') || 'nene-okul-zil-k7m2p9xw'; // geriye dönük uyumluluk
+const TOPIC  = params.get('topic') || 'nene-okul-zil-k7m2p9xw';
 
-const msg = document.getElementById('msg');
-const sub = document.getElementById('sub');
-const btn = document.getElementById('btn');
+const statusEl = document.getElementById('status');
+const barEl    = document.getElementById('bar');
+const retryBtn = document.getElementById('retryBtn');
+const searchBox= document.getElementById('searchBox');
+const foundBox = document.getElementById('foundBox');
+const continueBtn = document.getElementById('continueBtn');
+
+let _targetUrl = '';
+
+function setBar(pct){ barEl.style.width = pct + '%'; }
 
 async function connect() {
-  btn.style.display = 'none';
-  msg.className = '';
-  msg.textContent = 'Sunucu adresi alınıyor…';
-  sub.textContent = '';
+  retryBtn.style.display = 'none';
+  foundBox.style.display = 'none';
+  searchBox.style.display = 'block';
+  statusEl.style.color = '#f59e0b';
+  setBar(10);
+  statusEl.textContent = 'Sunucu adresi alınıyor…';
+
   try {
-    // Son 12 saatteki mesajları sorgula — en son IP'yi al
+    setBar(40);
     const res  = await fetch('https://ntfy.sh/' + TOPIC + '/json?poll=1&since=12h');
+    setBar(70);
     const text = await res.text();
     const lines = text.trim().split('\n').filter(Boolean);
+
     if (!lines.length) {
-      msg.className = 'err';
-      msg.textContent = '❌ Sunucu bulunamadı';
-      sub.textContent = 'Okul bilgisayarı açık ve program çalışıyor olmalı.';
-      btn.style.display = 'inline-block';
+      setBar(0);
+      statusEl.style.color = '#f87171';
+      statusEl.textContent = '⚠ Sunucu bulunamadı.\nOkul bilgisayarı açık ve program çalışıyor mu?';
+      retryBtn.style.display = 'inline-block';
       return;
     }
+
     const last = JSON.parse(lines[lines.length - 1]);
-    const ip   = last.message.trim();
+    const ip   = (last.message || '').trim();
     if (!ip || ip.length < 7) {
-      msg.className = 'err';
-      msg.textContent = '❌ Geçersiz adres';
-      sub.textContent = 'Kayıtlı adres: ' + ip;
-      btn.style.display = 'inline-block';
+      setBar(0);
+      statusEl.style.color = '#f87171';
+      statusEl.textContent = '⚠ Geçersiz adres alındı.';
+      retryBtn.style.display = 'inline-block';
       return;
     }
-    msg.className = 'ok';
-    msg.textContent = '✅ Sunucu bulundu!';
-    sub.textContent = ip + ' adresine yönlendiriliyorsunuz…';
-    setTimeout(() => {
-      window.location.href = 'http://' + ip + ':8765/remote.html';
-    }, 800);
+
+    setBar(100);
+    _targetUrl = 'http://' + ip + ':8765/remote.html';
+
+    // Ara ekranı göster
+    searchBox.style.display = 'none';
+    foundBox.style.display  = 'block';
+
   } catch(e) {
-    msg.className = 'err';
-    msg.textContent = '❌ Bağlantı hatası';
-    sub.textContent = e.message;
-    btn.style.display = 'inline-block';
+    setBar(0);
+    statusEl.style.color = '#f87171';
+    statusEl.textContent = '⚠ Bağlantı hatası: ' + e.message;
+    retryBtn.style.display = 'inline-block';
   }
 }
+
+continueBtn.addEventListener('click', () => {
+  if (_targetUrl) window.location.href = _targetUrl;
+});
 
 connect();
 </script>
