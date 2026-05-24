@@ -357,6 +357,19 @@
           <div class="sublabel">Ara başlangıcı</div>
         </div>
       </div>
+      <!-- Bugünü Tatil İlan Et -->
+      <div style="background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:14px;margin-top:14px;">
+        <div style="font-size:0.82rem;color:var(--text);font-weight:600;margin-bottom:6px;">🏖️ Bugünü Tatil İlan Et</div>
+        <div style="font-size:0.75rem;color:var(--text2);margin-bottom:10px;">
+          Aktif edilirse bugün hiçbir zil çalmaz. Yarın otomatik sıfırlanır.
+        </div>
+        <button id="holidayBtn" class="btn-big" onclick="toggleHoliday()"
+                style="background:#16a34a;color:#fff;width:100%;">
+          Yükleniyor…
+        </button>
+        <div id="holidayMsg" style="font-size:0.78rem;text-align:center;min-height:16px;margin-top:6px;"></div>
+      </div>
+
       <button class="btn-stop-big" onclick="remoteStopAll()" style="margin-top:14px;">
         ⏹ Tüm Sesleri Durdur
       </button>
@@ -463,19 +476,6 @@
                style="width:100%;padding:12px;border:1px solid var(--bg3);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:1rem;letter-spacing:4px;">
         <button class="btn-big btn-primary-big" onclick="changePin()">PIN Değiştir</button>
         <div id="pinChangeMsg" style="font-size:0.85rem;text-align:center;min-height:20px;"></div>
-        <hr style="border:none;border-top:1px solid var(--bg3);margin:4px 0;">
-        <!-- Bugünü Tatil İlan Et -->
-        <div style="background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:14px;">
-          <div style="font-size:0.82rem;color:var(--text);font-weight:600;margin-bottom:6px;">🏖️ Bugünü Tatil İlan Et</div>
-          <div style="font-size:0.75rem;color:var(--text2);margin-bottom:10px;">
-            Aktif edilirse bugün hiçbir zil çalmaz. Yarın otomatik sıfırlanır.
-          </div>
-          <button id="holidayBtn" class="btn-big" onclick="toggleHoliday()"
-                  style="background:#16a34a;color:#fff;width:100%;">
-            Yükleniyor…
-          </button>
-          <div id="holidayMsg" style="font-size:0.78rem;text-align:center;min-height:16px;margin-top:6px;"></div>
-        </div>
         <hr style="border:none;border-top:1px solid var(--bg3);margin:4px 0;">
         <p style="font-size:0.8rem;color:var(--text2);">Bağlı hesap: <strong id="connectedAs">—</strong></p>
         <button class="btn-big" style="background:var(--bg3);color:var(--text2);" onclick="doLogout()">Çıkış Yap</button>
