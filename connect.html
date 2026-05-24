@@ -526,12 +526,15 @@
                onpointerup="_sdPointerUp(event)"
                onpointercancel="_sdPointerUp(event)">⏻</div>
         </div>
+        <div style="font-size:0.7rem;color:var(--text2);margin-top:8px;line-height:1.4;">
+          ⚠ Zamanlayıcı bitmeden bu sayfayı kapatırsanız işlem iptal edilmiş olur.
+        </div>
       </div>
 
       <!-- Geri Sayım Paneli -->
       <div id="sdCountdownPanel">
         <div class="sd-cd-warning">⚠️ Bilgisayar kapatılıyor!</div>
-        <div class="sd-cd-num" id="sdCountdownNum">60</div>
+        <div class="sd-cd-num" id="sdCountdownNum">30</div>
         <div class="sd-cd-sub">saniye sonra kapanacak</div>
         <button id="sdCancelBtn" onclick="_sdCancelCountdown()">✕ İptal Et</button>
       </div>
@@ -1540,7 +1543,7 @@ async function _autoDiscover() {
   };
 
   window._sdStartCountdown = function() {
-    _sdSec = 60;
+    _sdSec = 30;
     const panel = document.getElementById('sdCountdownPanel');
     const numEl = document.getElementById('sdCountdownNum');
     if (panel) panel.classList.add('active');
